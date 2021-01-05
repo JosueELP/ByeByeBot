@@ -4,6 +4,8 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 //for videos
 const ytdl = require('ytdl-core');
+let enabled = true;
+let videos = ["https://www.youtube.com/watch?v=b8PxzPxI8Os", "https://www.youtube.com/watch?v=m-YVD8GUhr8"];
 
 client.login(process.env.BOT_TOKEN);
 
@@ -11,7 +13,38 @@ client.once('ready', () => {
 	console.log('Ready!');
 });
 
+//consts used for prexis commands
+const prefix = '&';
+const escapeRegex = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+//message method
+client.on('message', message => {
+	const prefixRegex = new RegExp(`^(<@!?${client.user.id}>|${escapeRegex(prefix)})\\s*`);
+	if (!prefixRegex.test(message.content)) return;
+
+	const [, matchedPrefix] = message.content.match(prefixRegex);
+	const args = message.content.slice(matchedPrefix.length).trim().split(/ +/);
+	const command = args.shift().toLowerCase();
+
+    //commands section!
+	if(command === 'enabled'){
+        enabled = true;
+        message.channel.send('ByeByeBot services are up! :)');
+        
+    } else if (command === 'disabled') {
+        enabled = false;
+        message.channel.send('ByeByeBot has been suspended :(');
+        
+	} else if (command === 'status') {
+        message.reply(`ByeByeBot is currently \`${enabled ? "enabled" : "disabled"}\`.`);
+        
+	} else if (command === 'help') {
+		message.reply(`you can either ping me or use \`${prefix}\` as my prefix.`);
+	}
+});
+
+
+//Voice state update method
 client.on('voiceStateUpdate', (oldState, newState) => {
     let oldChannel = oldState.channel;
     let newChannel = newState.channel;
@@ -26,10 +59,10 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     }
 
     //Check if a user disconects from voice channel
-    if(oldChannel !== null && newChannel === null && isBot === false){
+    if(oldChannel !== null && newChannel === null && isBot === false && enabled){
         voiceChannel.join()
             .then(connection => {
-                const stream = ytdl('https://www.youtube.com/watch?v=b8PxzPxI8Os', { filter: 'audioonly' });
+                const stream = ytdl(getRandom(), { filter: 'audioonly' });
                 const dispatcher = connection.play(stream);
                 //on finish()
                 dispatcher.on('finish', () => voiceChannel.leave());
@@ -42,3 +75,12 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     console.log(voiceChannel);
     console.log("-----------------");
 });
+
+//return random number
+function getRandom(){
+    let length = videos.length;
+    let min = 0;
+    let random = Math.floor(Math.random() * length);
+    console.log(random);
+    return videos[random];
+}
