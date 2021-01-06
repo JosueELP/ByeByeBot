@@ -26,12 +26,14 @@ client.on('message', message => {
 	const args = message.content.slice(matchedPrefix.length).trim().split(/ +/);
 	const command = args.shift().toLowerCase();
 
-    //commands section!
-	if(command === 'enabled'){
+    //Commands section!
+    //If you plan to add more than 6-7 commands, consider refactor the code
+    //to make the commands code more readable like it's specified in the Discord.JS guide.
+	if(command === 'enable'){
         enabled = true;
         message.channel.send('ByeByeBot services are up! :)');
         
-    } else if (command === 'disabled') {
+    } else if (command === 'disable') {
         enabled = false;
         message.channel.send('ByeByeBot has been suspended :(');
         
@@ -39,8 +41,15 @@ client.on('message', message => {
         message.reply(`ByeByeBot is currently \`${enabled ? "enabled" : "disabled"}\`.`);
         
 	} else if (command === 'help') {
-		message.reply(`you can either ping me or use \`${prefix}\` as my prefix.`);
-	}
+        message.reply(`you can either ping me or use \`${prefix}\` as my prefix.`);
+        
+	} else if(command === 'commands'){
+        message.reply(`Hi, these are my avaliable commands at the moment: `);
+        message.channel.send(`${"enable"}: to activate my services`);
+        message.channel.send(`${"disable"}: to stop my services`);
+        message.channel.send(`${"status"}: to show if I'm on service or not`);
+        message.channel.send(`${"help"}: to tell you what's the prefix you should use to call me \n (between you and me, that last command is not very helpful at all!)`);
+    }
 });
 
 
@@ -59,7 +68,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     }
 
     //Check if a user disconects from voice channel
-    if(oldChannel !== null && newChannel === null && isBot === false && enabled){
+    if(oldChannel !== null && newChannel === null && isBot === false && enabled && voiceChannel.members.size > 0){
         voiceChannel.join()
             .then(connection => {
                 const stream = ytdl(getRandom(), { filter: 'audioonly' });
@@ -71,16 +80,16 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     }
 
     //debug stuff
-    console.log("-----------------");
-    console.log(voiceChannel);
-    console.log("-----------------");
+    /*
+    * console.log("-----------------");
+    * console.log(voiceChannel);
+    * console.log("-----------------");
+    */
 });
 
 //return random number
 function getRandom(){
     let length = videos.length;
-    let min = 0;
     let random = Math.floor(Math.random() * length);
-    console.log(random);
     return videos[random];
 }
